@@ -6,8 +6,6 @@
 using namespace std;
 using namespace  sf;
 
-Texture createBackgroundTexture(Uint16 windowWidth, Uint16 windowHeight, Color color);
-
 struct Node {
     int data;
     int size = 1;
@@ -18,7 +16,8 @@ struct Node {
     }
 };
 
-void renderNodes(list <Drawable *> * toRender, Node * node, Font *font, int layer, int x, int y);
+Texture createBackgroundTexture(Uint16 windowWidth, Uint16 windowHeight, Color color);
+void renderNodes(list <Drawable *> * toRender, Node * node, Font *font, int width, int verticalDistribution, int layer = 1, int xOffset = 0, int yOffset = 0);
 
 int main() {
     //Настройки окна
@@ -49,7 +48,7 @@ int main() {
     }
 
     list <Drawable *> toRender;
-    renderNodes(&toRender, &root, &montserratBold, 1, 600, 100);
+    renderNodes(&toRender, &root, &montserratBold, 1000, 100, 1, 100, 200);
 
     //Начинаем жизнь окна
     while (myWindow.isOpen()) //Пока окно открыто
@@ -87,11 +86,11 @@ Texture createBackgroundTexture(Uint16 windowWidth, Uint16 windowHeight, Color c
     return backgroundTexture;
 }
 
-void renderNodes(list <Drawable *> * toRender, Node * node, Font *font, int layer, int x, int y){
+void renderNodes(list <Drawable *> * toRender, Node * node, Font *font, int width, int verticalDistribution, int layer, int xOffset, int yOffset){
     CircleShape * newCircle = new CircleShape(50);
     newCircle->setFillColor(Color().Black);
     newCircle->setOrigin(Vector2f(50, 50));
-    newCircle->setPosition(x, y);
+    newCircle->setPosition(width / 2 + xOffset, verticalDistribution + yOffset);
     toRender->push_back(newCircle);
 
     Text * number = new Text;
@@ -100,12 +99,12 @@ void renderNodes(list <Drawable *> * toRender, Node * node, Font *font, int laye
     number->setCharacterSize(50);
     number->setFillColor(Color().Magenta);
     number->setOrigin(number->getLocalBounds().width/2, number->getLocalBounds().height/2);
-    number->setPosition(x, y);
+    number->setPosition(width / 2 + xOffset, verticalDistribution + yOffset);
     toRender->push_back(number);
 
     if(node->left)
-        renderNodes(toRender, node->left, font, layer + 1, x - x / pow(2, layer),  y + 100);
+        renderNodes(toRender, node->left, font, (width / 2 - width / pow(2, layer - 1)) * 2,  verticalDistribution + 100, layer + 1, xOffset, yOffset);
     if(node->right)
-        renderNodes(toRender, node->right, font, layer + 1, x + x / pow(2, layer), y + 100);
+        renderNodes(toRender, node->left, font, (width / 2 + width / pow(2, layer - 1)) * 2,  verticalDistribution + 100, layer + 1, xOffset, yOffset);
 }
 
