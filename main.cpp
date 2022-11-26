@@ -17,7 +17,8 @@ struct Node {
 };
 
 Texture createBackgroundTexture(Uint16 windowWidth, Uint16 windowHeight, Color color);
-void renderNodes(list <Drawable *> * toRender, Node * node, Font *font, int width, int verticalDistribution, int layer = 1, int xOffset = 0, int yOffset = 0);
+void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int halfWidth, int verticalDistribution, int layer = 1, int xOffset = 0, int yOffset = 0);
+void clearRenderQueue(list <Drawable *> renderQueue);
 
 int main() {
     //Настройки окна
@@ -30,7 +31,7 @@ int main() {
     myWindow.setFramerateLimit(60);
 
     //Что-то делаем...
-    Texture backgroundTexture = createBackgroundTexture(1440, 960, Color().White);
+    Texture backgroundTexture = createBackgroundTexture(1440, 960, Color(230, 230, 230));
     RectangleShape background;
     background.setSize(Vector2f(1440, 960));
     background.setTexture(&backgroundTexture);
@@ -43,12 +44,12 @@ int main() {
     root.right->right->left = new Node(14);
 
     Font montserratBold;
-    if(!montserratBold.loadFromFile("/Users/mleykhner/Desktop/TreesDrawer/resources/MontserratBold.ttf")){
+    if(!montserratBold.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/MontserratBold.ttf")){
         throw "FONT_NOT_LOADED";
     }
 
-    list <Drawable *> toRender;
-    renderNodes(&toRender, &root, &montserratBold, 1000, 100, 1, 100, 200);
+    list <Drawable *> renderQueue;
+    renderNodes(&renderQueue, &root, &montserratBold, 500, 200, 1, 220, 200);
 
     //Начинаем жизнь окна
     while (myWindow.isOpen()) //Пока окно открыто
@@ -62,7 +63,7 @@ int main() {
         }
         myWindow.clear();
         myWindow.draw(background);
-        for(Drawable * toDraw : toRender){
+        for(Drawable * toDraw : renderQueue){
             myWindow.draw(* toDraw);
         }
         myWindow.display();
@@ -86,25 +87,64 @@ Texture createBackgroundTexture(Uint16 windowWidth, Uint16 windowHeight, Color c
     return backgroundTexture;
 }
 
-void renderNodes(list <Drawable *> * toRender, Node * node, Font *font, int width, int verticalDistribution, int layer, int xOffset, int yOffset){
+void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int halfWidth, int verticalDistribution, int layer, int xOffset, int yOffset){
+    if(node->left) {
+        VertexArray * line = new VertexArray(sf::Lines);
+        Vertex * pointOne = new Vertex();
+        Vertex * pointTwo = new Vertex();
+        pointOne->color = Color().Black;
+        pointOne->position = Vector2f(halfWidth + xOffset, verticalDistribution * (layer - 1) + yOffset - 50);
+        pointTwo->color = Color().Black;
+        pointTwo->position = Vector2f(halfWidth - halfWidth / pow(2, layer) + xOffset, verticalDistribution * layer + yOffset - 50);
+        line->resize(2);
+        line->append(*pointOne);
+        line->append(*pointTwo);
+        renderQueue->push_back(line);
+    }
+
+    if(node->right) {
+        VertexArray * line = new VertexArray(sf::Lines);
+        Vertex * pointOne = new Vertex();
+        Vertex * pointTwo = new Vertex();
+        pointOne->color = Color().Black;
+        pointOne->position = Vector2f(halfWidth + xOffset, verticalDistribution * (layer - 1) + yOffset - 50);
+        pointTwo->color = Color().Black;
+        pointTwo->position = Vector2f(halfWidth + halfWidth / pow(2, layer) + xOffset, verticalDistribution * layer + yOffset - 50);
+        line->resize(2);
+        line->append(*pointOne);
+        line->append(*pointTwo);
+        renderQueue->push_back(line);
+    }
+
     CircleShape * newCircle = new CircleShape(50);
-    newCircle->setFillColor(Color().Black);
+    //newCircle->setFillColor(Color().Black);
+    newCircle->setOutlineThickness(5);
+    newCircle->setOutlineColor(Color(217, 155, 102));
     newCircle->setOrigin(Vector2f(50, 50));
-    newCircle->setPosition(width / 2 + xOffset, verticalDistribution + yOffset);
-    toRender->push_back(newCircle);
+    newCircle->setPosition(halfWidth + xOffset, verticalDistribution * (layer - 1) + yOffset - 50);
+    renderQueue->push_back(newCircle);
 
     Text * number = new Text;
     number->setString(to_string(node->data));
     number->setFont(*font);
     number->setCharacterSize(50);
-    number->setFillColor(Color().Magenta);
+    number->setFillColor(Color( 191, 90, 90));
     number->setOrigin(number->getLocalBounds().width/2, number->getLocalBounds().height/2);
-    number->setPosition(width / 2 + xOffset, verticalDistribution + yOffset);
-    toRender->push_back(number);
+    number->setPosition(halfWidth + xOffset, verticalDistribution * (layer - 1) + yOffset - 63);
+    renderQueue->push_back(number);
 
     if(node->left)
-        renderNodes(toRender, node->left, font, (width / 2 - width / pow(2, layer - 1)) * 2,  verticalDistribution + 100, layer + 1, xOffset, yOffset);
+        renderNodes(renderQueue, node->left, font, halfWidth - halfWidth / pow(2, layer),  verticalDistribution, layer + 1, xOffset, yOffset);
     if(node->right)
-        renderNodes(toRender, node->left, font, (width / 2 + width / pow(2, layer - 1)) * 2,  verticalDistribution + 100, layer + 1, xOffset, yOffset);
+        renderNodes(renderQueue, node->right, font, halfWidth + halfWidth / pow(2, layer),  verticalDistribution, layer + 1, xOffset, yOffset);
 }
 
+void clearRenderQueue(list <Drawable *> renderQueue){
+    for(Drawable * toRender : renderQueue){
+        delete toRender;
+    }
+}
+
+void drawButtons(list <Drawable *> * renderQueue){
+
+}
