@@ -94,7 +94,6 @@ public:
     }
 private:
     sf::Text textbox;
-
     std::ostringstream text;
     bool isSelected = false;
     bool hasLimit = false;
@@ -180,7 +179,7 @@ private:
 };
 
 Texture createBackgroundTexture(Uint16 windowWidth, Uint16 windowHeight, Color color);
-void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int halfWidth, int verticalDistribution, int layer = 1, int xOffset = 0, int yOffset = 0);
+void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int x, int y, int xOffset = 220, int yOffset = 200, int horizontalDistribution = 400, int verticalDistribution = 128, int layer = 1);
 void clearRenderQueue(list <Drawable *> * renderQueue);
 
 int main() {
@@ -214,7 +213,11 @@ int main() {
     //Создаём дерево
     Node root(12);
     root.left = new Node(11);
+    root.left->left = new Node(12);
+    root.left->right = new Node(65);
     root.right = new Node(13);
+    root.right->left = new Node(100);
+    root.right->left->right = new Node(65);
     root.right->right = new Node(15);
     root.right->right->right = new Node(16);
     root.right->right->left = new Node(14);
@@ -228,7 +231,7 @@ int main() {
 
     //Создаём очередь рендеринга и кнопки
     list <Drawable *> renderQueue;
-    renderNodes(&renderQueue, &root, &montserratBold, 500, 200, 1, xOffset, yOffset);
+    renderNodes(&renderQueue, &root, &montserratBold, 500, 200);
     Button addNewButton(&addNewButton_texture, 60);
     addNewButton.setPosition(Vector2f(20, windowHeight - addNewButton.getSize().y - 20));
     Button deleteButton(&deleteButton_texture, 60);
@@ -272,7 +275,7 @@ int main() {
             yOffset += deltaY;
 
             clearRenderQueue(&renderQueue);
-            renderNodes(&renderQueue, &root, &montserratBold, 500, 200, 1, xOffset, yOffset);
+            renderNodes(&renderQueue, &root, &montserratBold, 500, 200, xOffset, yOffset);
 
             mousePositionX = Mouse::getPosition(myWindow).x;
             mousePositionY = Mouse::getPosition(myWindow).y;
@@ -311,7 +314,62 @@ Texture createBackgroundTexture(Uint16 windowWidth, Uint16 windowHeight, Color c
     return backgroundTexture;
 }
 
-void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int halfWidth, int verticalDistribution, int layer, int xOffset, int yOffset){
+//void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int horizontalDistribution, int verticalDistribution, int layer, int xOffset, int yOffset){
+//
+//    //Рисуем ветки
+//    if(node->left) {
+//        VertexArray * line = new VertexArray(sf::Lines);
+//        Vertex * pointOne = new Vertex();
+//        Vertex * pointTwo = new Vertex();
+//        pointOne->color = Color().Black;
+//        pointOne->position = Vector2f(horizontalDistribution + xOffset, verticalDistribution * (layer - 1) + yOffset - 50);
+//        pointTwo->color = Color().Black;
+//        pointTwo->position = Vector2f(horizontalDistribution - horizontalDistribution / pow(2, layer) + xOffset, verticalDistribution * layer + yOffset - 50);
+//        line->resize(2);
+//        line->append(*pointOne);
+//        line->append(*pointTwo);
+//        renderQueue->push_back(line);
+//    }
+//    if(node->right) {
+//        VertexArray * line = new VertexArray(sf::Lines);
+//        Vertex * pointOne = new Vertex();
+//        Vertex * pointTwo = new Vertex();
+//        pointOne->color = Color().Black;
+//        pointOne->position = Vector2f(horizontalDistribution + xOffset, verticalDistribution * (layer - 1) + yOffset - 50);
+//        pointTwo->color = Color().Black;
+//        pointTwo->position = Vector2f(horizontalDistribution + horizontalDistribution / pow(2, layer) + xOffset, verticalDistribution * layer + yOffset - 50);
+//        line->resize(2);
+//        line->append(*pointOne);
+//        line->append(*pointTwo);
+//        renderQueue->push_back(line);
+//    }
+//
+//    //Рисуем узел
+//    CircleShape * newCircle = new CircleShape(50);
+//    newCircle->setOutlineThickness(5);
+//    newCircle->setOutlineColor(Color(217, 155, 102));
+//    newCircle->setOrigin(Vector2f(50, 50));
+//    newCircle->setPosition(horizontalDistribution + xOffset, verticalDistribution * (layer - 1) + yOffset - 50);
+//    renderQueue->push_back(newCircle);
+//
+//    //Рисуем надпись
+//    Text * number = new Text;
+//    number->setString(to_string(node->data));
+//    number->setFont(*font);
+//    number->setCharacterSize(50);
+//    number->setFillColor(Color( 191, 90, 90));
+//    number->setOrigin(number->getLocalBounds().width/2, number->getLocalBounds().height/2);
+//    number->setPosition(horizontalDistribution + xOffset, verticalDistribution * (layer - 1) + yOffset - 63);
+//    renderQueue->push_back(number);
+//
+//    //Рекурсивно вызываем функцию для левого и правого ребёнка
+//    if(node->left)
+//        renderNodes(renderQueue, node->left, font, horizontalDistribution - horizontalDistribution / pow(2, layer), verticalDistribution, layer + 1, xOffset, yOffset);
+//    if(node->right)
+//        renderNodes(renderQueue, node->right, font, horizontalDistribution + horizontalDistribution / pow(2, layer), verticalDistribution, layer + 1, xOffset, yOffset);
+//}
+
+void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int x, int y, int xOffset, int yOffset, int horizontalDistribution, int verticalDistribution, int layer){
 
     //Рисуем ветки
     if(node->left) {
@@ -319,9 +377,9 @@ void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int h
         Vertex * pointOne = new Vertex();
         Vertex * pointTwo = new Vertex();
         pointOne->color = Color().Black;
-        pointOne->position = Vector2f(halfWidth + xOffset, verticalDistribution * (layer - 1) + yOffset - 50);
+        pointOne->position = Vector2f(x + xOffset, y + yOffset);
         pointTwo->color = Color().Black;
-        pointTwo->position = Vector2f(halfWidth - halfWidth / pow(2, layer) + xOffset, verticalDistribution * layer + yOffset - 50);
+        pointTwo->position = Vector2f(x - horizontalDistribution / pow(2, layer - 1) + xOffset, y + verticalDistribution * layer + yOffset);
         line->resize(2);
         line->append(*pointOne);
         line->append(*pointTwo);
@@ -332,9 +390,9 @@ void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int h
         Vertex * pointOne = new Vertex();
         Vertex * pointTwo = new Vertex();
         pointOne->color = Color().Black;
-        pointOne->position = Vector2f(halfWidth + xOffset, verticalDistribution * (layer - 1) + yOffset - 50);
+        pointOne->position = Vector2f(x + xOffset, y + yOffset);
         pointTwo->color = Color().Black;
-        pointTwo->position = Vector2f(halfWidth + halfWidth / pow(2, layer) + xOffset, verticalDistribution * layer + yOffset - 50);
+        pointTwo->position = Vector2f(x + horizontalDistribution / pow(2, layer - 1) + xOffset, y + verticalDistribution * layer + yOffset);
         line->resize(2);
         line->append(*pointOne);
         line->append(*pointTwo);
@@ -346,7 +404,7 @@ void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int h
     newCircle->setOutlineThickness(5);
     newCircle->setOutlineColor(Color(217, 155, 102));
     newCircle->setOrigin(Vector2f(50, 50));
-    newCircle->setPosition(halfWidth + xOffset, verticalDistribution * (layer - 1) + yOffset - 50);
+    newCircle->setPosition(x + xOffset, y + yOffset);
     renderQueue->push_back(newCircle);
 
     //Рисуем надпись
@@ -356,14 +414,15 @@ void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int h
     number->setCharacterSize(50);
     number->setFillColor(Color( 191, 90, 90));
     number->setOrigin(number->getLocalBounds().width/2, number->getLocalBounds().height/2);
-    number->setPosition(halfWidth + xOffset, verticalDistribution * (layer - 1) + yOffset - 63);
+    number->setPosition(x + xOffset, y + yOffset - 15);
     renderQueue->push_back(number);
 
     //Рекурсивно вызываем функцию для левого и правого ребёнка
     if(node->left)
-        renderNodes(renderQueue, node->left, font, halfWidth - halfWidth / pow(2, layer),  verticalDistribution, layer + 1, xOffset, yOffset);
+        renderNodes(renderQueue, node->left, font, x - horizontalDistribution / pow(2, layer - 1), y + verticalDistribution * layer, xOffset, yOffset, horizontalDistribution, verticalDistribution, layer + 1);
     if(node->right)
-        renderNodes(renderQueue, node->right, font, halfWidth + halfWidth / pow(2, layer),  verticalDistribution, layer + 1, xOffset, yOffset);
+        renderNodes(renderQueue, node->right, font, x + horizontalDistribution / pow(2, layer - 1), y + verticalDistribution * layer, xOffset, yOffset, horizontalDistribution, verticalDistribution, layer + 1);
+
 }
 
 void clearRenderQueue(list <Drawable *> * renderQueue){
