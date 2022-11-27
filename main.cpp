@@ -188,7 +188,6 @@ private:
 
 };
 
-
 Texture createBackgroundTexture(Uint16 windowWidth, Uint16 windowHeight, Color color);
 void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int x, int y, int xOffset, int yOffset, int horizontalDistribution, int verticalDistribution, int layer);
 void renderTree(list <Drawable *> * renderQueue, Tree * tree, Font *font, int x, int y, int xOffset = 220, int yOffset = 200, int horizontalDistribution = 400, int verticalDistribution = 150, int layer = 1);
@@ -229,8 +228,14 @@ int main() {
     //Создаём дерево
     Tree * myTree = new Tree;
     myTree->root = new Node(10);
+    srand(std::time(NULL));
+    for(int i = 0; i < 15; i++){
+        insert(myTree, random() % 100);
+    }
 
     //Инициализируем необходимые переменные
+    int verticalDistance = 200;
+    int horizontalDistance = 400;
     bool dragging = false;
     int mousePositionX = 0;
     int mousePositionY = 0;
@@ -239,7 +244,7 @@ int main() {
 
     //Создаём очередь рендеринга и кнопки
     list <Drawable *> renderQueue;
-    renderTree(&renderQueue, myTree, &montserratBold, 500, 200);
+    renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
 
     NumBox numberInput(&textField_texture, 60);
     numberInput.setPosition(Vector2f(20, windowHeight - numberInput.getSize().y - 20));
@@ -270,7 +275,7 @@ int main() {
                         insert(myTree, numberInput.getNum());
                         numberInput.clear();
                         clearRenderQueue(&renderQueue);
-                        renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset);
+                        renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
 
                     }
                     else if(deleteButton.isMouseOver(myWindow)) {
@@ -279,7 +284,7 @@ int main() {
                             deleteElement(myTree->root, numberInput.getNum());
                             numberInput.clear();
                             clearRenderQueue(&renderQueue);
-                            renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset);
+                            renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
                         }catch(char * error){ //TODO: Починить отлов ошибки
                             cout << "error" << error << endl;
                             //TODO: Покрасить поле вводе
@@ -298,8 +303,16 @@ int main() {
                 case sf::Event::MouseButtonReleased:
                     dragging = false;
                     break;
+                case sf::Event::MouseWheelMoved:
+                    horizontalDistance += event.mouseWheel.delta * -10;
+                    if(horizontalDistance < 50) horizontalDistance = 50;
+                    clearRenderQueue(&renderQueue);
+                    renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
+                    break;
                 case sf::Event::TextEntered:
                     numberInput.typedOn(event);
+                    break;
+                default:
                     break;
             }
 
@@ -312,7 +325,7 @@ int main() {
             yOffset += deltaY;
 
             clearRenderQueue(&renderQueue);
-            renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset);
+            renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
 
             mousePositionX = Mouse::getPosition(myWindow).x;
             mousePositionY = Mouse::getPosition(myWindow).y;
