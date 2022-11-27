@@ -9,7 +9,7 @@ file(GLOB SOURCES
         *.cpp
         )
 
-add_executable(TreesDrawer ${SOURCE_FILES} ${SOURCES})
+add_executable(TreesDrawer ${SOURCE_FILES} ${SOURCES} functions.h functions.cpp)
 find_package(SFML 2.5 COMPONENTS system window graphics network audio REQUIRED)
 include_directories(${SFML_INCLUDE_DIRS})
 target_link_libraries(TreesDrawer sfml-system sfml-window sfml-graphics sfml-audio sfml-network)

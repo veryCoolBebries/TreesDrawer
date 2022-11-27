@@ -1,197 +1,13 @@
 #include <iostream>
-#include <sstream>
 #include <SFML/Graphics.hpp>
 #include <list>
 #include "cmath"
 #include "trees.h"
+#include "elements.h"
+#include "functions.h"
 
 using namespace std;
 using namespace  sf;
-
-#define DELETE_KEY 8
-#define ENTER_KEY 13
-#define ESCAPE_KEY 27
-
-class Button {
-public:
-    Button(Texture * texture, float height) {
-        float scale = height / texture->getSize().y;
-        button.setSize(Vector2f(texture->getSize().x * scale, texture->getSize().y * scale));
-        button.setTexture(texture);
-    }
-
-    void setPosition(sf::Vector2f point) {
-        button.setPosition(point);
-    }
-
-    void drawTo(sf::RenderWindow &window) {
-        window.draw(button);
-    }
-
-    Vector2f getSize(){
-        return button.getSize();
-    }
-
-    bool isMouseOver(sf::RenderWindow &window) {
-        int mouseX = sf::Mouse::getPosition(window).x;
-        int mouseY = sf::Mouse::getPosition(window).y;
-
-        int btnPosX = button.getPosition().x;
-        int btnPosY = button.getPosition().y;
-
-        int btnxPosWidth = button.getPosition().x + button.getSize().x;
-        int btnyPosHeight = button.getPosition().y + button.getSize().y;
-
-        if (mouseX < btnxPosWidth && mouseX > btnPosX && mouseY < btnyPosHeight && mouseY > btnPosY) {
-            return true;
-        }
-        return false;
-    }
-private:
-    sf::RectangleShape button;
-};
-class NumBox {
-public:
-    NumBox(Texture * texture, float height, Color textColor = Color().Black, bool sel = false) {
-        float scale = height / texture->getSize().y;
-        background.setSize(Vector2f(texture->getSize().x * scale, texture->getSize().y * scale));
-        background.setTexture(texture);
-
-        textbox.setCharacterSize(height/2);
-        textbox.setColor(textColor);
-
-        isSelected = sel;
-        if(isSelected)
-            textbox.setString("|");
-        else
-            textbox.setString("");
-    }
-
-    void setSelected(bool sel) {
-        isSelected = sel;
-
-        if (!sel) {
-            std::string t = text.str();
-            std::string newT = "";
-            for (int i = 0; i < t.length(); i++) {
-                newT += t[i];
-            }
-            textbox.setString(newT);
-        }
-    }
-
-    void clear(){
-        textbox.setString("");
-        text.str("");
-    }
-
-    int getNum(){
-        int res = 0;
-        for(char letter : text.str()){
-            res = res * 10 + letter - 48;
-        }
-        return res;
-    }
-
-    void setFont(sf::Font &fonts) {
-        textbox.setFont(fonts);
-    }
-
-    void setLimit(bool ToF) {
-        hasLimit = ToF;
-    }
-
-    void setLimit(bool ToF, int lim) {
-        hasLimit = ToF;
-        limit = lim - 1;
-    }
-
-    void setPosition(sf::Vector2f point) {
-        background.setPosition(point);
-        textbox.setPosition(Vector2f(point.x + 10, point.y + background.getSize().y / 5));
-    }
-
-    void drawTo(sf::RenderWindow &window) {
-        window.draw(background);
-        window.draw(textbox);
-    }
-
-    Vector2f getSize(){
-        return background.getSize();
-    }
-
-    bool isMouseOver(sf::RenderWindow &window) {
-        int mouseX = sf::Mouse::getPosition(window).x;
-        int mouseY = sf::Mouse::getPosition(window).y;
-
-        int btnPosX = background.getPosition().x;
-        int btnPosY = background.getPosition().y;
-
-        int btnxPosWidth = background.getPosition().x + background.getSize().x;
-        int btnyPosHeight = background.getPosition().y + background.getSize().y;
-
-        if (mouseX < btnxPosWidth && mouseX > btnPosX && mouseY < btnyPosHeight && mouseY > btnPosY) {
-            return true;
-        }
-        return false;
-    }
-
-    void typedOn(sf::Event input) {
-        if (isSelected) {
-            int charTyped = input.text.unicode;
-            if (charTyped < 128) {
-                if (hasLimit) {
-                    if (text.str().length() <= limit) {
-                        inputLogic(charTyped);
-                    }
-                    else if (text.str().length() > limit && charTyped == DELETE_KEY) {
-                        deleteLastChar();
-                    }
-                }
-                else {
-                    inputLogic(charTyped);
-                }
-            }
-        }
-    }
-
-private:
-    sf::Text textbox;
-    std::ostringstream text;
-    sf::RectangleShape background;
-    bool isSelected = false;
-    bool hasLimit = false;
-    int limit = 0;
-
-    void deleteLastChar() {
-        std::string t = text.str();
-        std::string newT = "";
-        for (int i = 0; i < t.length() - 1; i++) {
-            newT += t[i];
-        }
-        text.str("");
-        text << newT;
-        textbox.setString(text.str() + "|");
-    }
-
-    void inputLogic(int charTyped) {
-        if (charTyped != DELETE_KEY && charTyped != ENTER_KEY && charTyped != ESCAPE_KEY) {
-            text << static_cast<char>(charTyped);
-        }
-        else if (charTyped == DELETE_KEY) {
-            if (text.str().length() > 0) {
-                deleteLastChar();
-            }
-        }
-        textbox.setString(text.str() + "|");
-    }
-
-};
-
-Texture createBackgroundTexture(Uint16 windowWidth, Uint16 windowHeight, Color color);
-void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int x, int y, int xOffset, int yOffset, int horizontalDistribution, int verticalDistribution, int layer);
-void renderTree(list <Drawable *> * renderQueue, Tree * tree, Font *font, int x, int y, int xOffset = 220, int yOffset = 200, int horizontalDistribution = 400, int verticalDistribution = 150, int layer = 1);
-void clearRenderQueue(list <Drawable *> * renderQueue);
 
 int main() {
     //Настройки окна
@@ -211,7 +27,7 @@ int main() {
     background.setSize(Vector2f(windowWidth, windowHeight));
     background.setTexture(&backgroundTexture);
 
-    //Загружаем файлы ресурсов
+    //Загружаем файлы ресурсов TODO: Вызывать испключения если файл не загрузился
     Texture addNewButton_texture;
     addNewButton_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/addNewNode.png");
     Texture deleteButton_texture;
@@ -242,7 +58,7 @@ int main() {
     int xOffset = 220;
     int yOffset = 200;
 
-    //Создаём очередь рендеринга и кнопки
+    //Создаём очередь рендеринга и элементы управления
     list <Drawable *> renderQueue;
     renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
 
@@ -346,89 +162,4 @@ int main() {
     }
 
     return 0;
-}
-
-Texture createBackgroundTexture(Uint16 windowWidth, Uint16 windowHeight, Color color){
-    //Создаем текстуру фона
-    Texture backgroundTexture;
-    backgroundTexture.create(windowWidth, windowHeight);
-    //Массив пикселей
-    Uint8 * backgroundPixels = new Uint8 [windowHeight * windowWidth * 4];
-    //Раскладываем цвет на составляющие
-    Uint8 myColor[4] = {color.r, color.g, color.b, color.a};
-    //Записываем цвет в каждый пиксель
-    for(int pixel = 0; pixel < windowWidth * windowHeight * 4; pixel++){
-        backgroundPixels[pixel] = myColor[pixel % 4];
-    }
-    //Обновляем текстуру новыми пикселями
-    backgroundTexture.update(backgroundPixels);
-    //Возвращяем текстуру
-    return backgroundTexture;
-}
-
-void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int x, int y, int xOffset, int yOffset, int horizontalDistribution, int verticalDistribution, int layer){
-
-    //Рисуем ветки
-    if(node->left) {
-        VertexArray * line = new VertexArray(sf::Lines);
-        Vertex * pointOne = new Vertex();
-        Vertex * pointTwo = new Vertex();
-        pointOne->color = Color().Black;
-        pointOne->position = Vector2f(x + xOffset, y + yOffset);
-        pointTwo->color = Color().Black;
-        pointTwo->position = Vector2f(x - horizontalDistribution / pow(2, layer - 1) + xOffset, y + verticalDistribution + yOffset);
-        line->resize(2);
-        line->append(*pointOne);
-        line->append(*pointTwo);
-        renderQueue->push_back(line);
-    }
-    if(node->right) {
-        VertexArray * line = new VertexArray(sf::Lines);
-        Vertex * pointOne = new Vertex();
-        Vertex * pointTwo = new Vertex();
-        pointOne->color = Color().Black;
-        pointOne->position = Vector2f(x + xOffset, y + yOffset);
-        pointTwo->color = Color().Black;
-        pointTwo->position = Vector2f(x + horizontalDistribution / pow(2, layer - 1) + xOffset, y + verticalDistribution + yOffset);
-        line->resize(2);
-        line->append(*pointOne);
-        line->append(*pointTwo);
-        renderQueue->push_back(line);
-    }
-
-    //Рисуем узел
-    CircleShape * newCircle = new CircleShape(50);
-    newCircle->setOutlineThickness(5);
-    newCircle->setOutlineColor(Color(217, 155, 102));
-    newCircle->setOrigin(Vector2f(50, 50));
-    newCircle->setPosition(x + xOffset, y + yOffset);
-    renderQueue->push_back(newCircle);
-
-    //Рисуем надпись
-    Text * number = new Text;
-    number->setString(to_string(node->data));
-    number->setFont(*font);
-    number->setCharacterSize(50);
-    number->setFillColor(Color( 191, 90, 90));
-    number->setOrigin(number->getLocalBounds().width/2, number->getLocalBounds().height/2);
-    number->setPosition(x + xOffset, y + yOffset - 15);
-    renderQueue->push_back(number);
-
-    //Рекурсивно вызываем функцию для левого и правого ребёнка
-    if(node->left)
-        renderNodes(renderQueue, node->left, font, x - horizontalDistribution / pow(2, layer - 1), y + verticalDistribution, xOffset, yOffset, horizontalDistribution, verticalDistribution, layer + 1);
-    if(node->right)
-        renderNodes(renderQueue, node->right, font, x + horizontalDistribution / pow(2, layer - 1), y + verticalDistribution, xOffset, yOffset, horizontalDistribution, verticalDistribution, layer + 1);
-
-}
-
-void renderTree(list <Drawable *> * renderQueue, Tree * tree, Font *font, int x, int y, int xOffset, int yOffset, int horizontalDistribution, int verticalDistribution, int layer){
-    renderNodes(renderQueue, tree->root, font, x, y, xOffset, yOffset, horizontalDistribution, verticalDistribution, layer);
-}
-
-void clearRenderQueue(list <Drawable *> * renderQueue){
-    while(!renderQueue->empty()){
-        delete *renderQueue->begin();
-        renderQueue->pop_front();
-    }
 }
