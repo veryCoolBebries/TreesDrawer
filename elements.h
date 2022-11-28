@@ -24,6 +24,19 @@ private:
     sf::RectangleShape button;
 };
 
+class DataBadge{
+public:
+    DataBadge(Texture * texture, Font & font, int height);
+    void drawTo(sf::RenderWindow &window);
+    void setData(int data);
+    void setPosition(Vector2f point);
+    Vector2f getPosition();
+    Vector2f getSize();
+private:
+    sf::Text text;
+    sf::RectangleShape background;
+};
+
 class NumBox {
 public:
     NumBox(Texture * texture, float height, Color textColor = Color().Black, bool sel = false);

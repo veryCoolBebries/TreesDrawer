@@ -1,7 +1,6 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include <list>
-#include "cmath"
 #include "trees.h"
 #include "elements.h"
 #include "functions.h"
@@ -15,7 +14,7 @@ int main() {
     Uint16 windowHeight = 960;
     string windowTitle = "Мудрое дерево";
     sf::ContextSettings settings;
-    settings.antialiasingLevel = 8;
+    settings.antialiasingLevel = 16;
 
     //Инициализация окна
     RenderWindow myWindow(VideoMode(windowWidth, windowHeight), String::fromUtf8(windowTitle.begin(), windowTitle.end()), Style::Close, settings);
@@ -33,59 +32,77 @@ int main() {
     Texture searchButton_texture;
     Texture textField_texture;
     Texture textField_error_texture;
+    Texture sizeBadge_texture;
+    Texture heightBadge_texture;
+    Texture sumBadge_texture;
     Font montserratBold;
     if(!montserratBold.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/MontserratBold.ttf") ||
        !textField_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/textField.png") ||
        !textField_error_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/textField_error.png") ||
        !searchButton_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/searchNode.png") ||
        !deleteButton_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/deleteNode.png") ||
+       !heightBadge_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/height.png") ||
+       !sizeBadge_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/size.png") ||
+       !sumBadge_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/sum.png") ||
        !addNewButton_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/addNewNode.png")){
         throw "FILE_NOT_LOADED";
     }
 
     //Создаём дерево
     Tree * myTree = new Tree;
-    myTree->root = new Node(10);
-    srand(std::time(NULL));
-    for(int i = 0; i < 1; i++){
-        try{
-            insert(*myTree, random() % 100);
-        }catch(char const * e){
-            cout << *e << endl;
-        }
-
-    }
 
     //Инициализируем необходимые переменные
-    int verticalDistance = 200;
-    int horizontalDistance = 400;
-    bool dragging = false;
+    int verticalDistance = 200; //Расстояние по вертикали между узлами
+    int horizontalDistance = 400; //Начальное горизонтальное расстояние
+    bool dragging = false; //Происходит ли сейчас перетаскивание дерева?
     int mousePositionX = 0;
     int mousePositionY = 0;
     int xOffset = 220;
     int yOffset = 200;
-    Node * desirable = nullptr;
+    Node * desirable = nullptr; //Адрес искомого элемента
 
     //Создаём очередь рендеринга и элементы управления
     list <Drawable *> renderQueue;
-    renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
+    renderTree(&renderQueue, //Рендеринг дерева
+               myTree,
+               &montserratBold,
+               500, 200,
+               xOffset,
+               yOffset,
+               horizontalDistance,
+               verticalDistance);
 
+
+    int padding = 20;
     NumBox numberInput(&textField_texture, 60);
-    numberInput.setPosition(Vector2f(20, windowHeight - numberInput.getSize().y - 20));
+    numberInput.setPosition(Vector2f((float)padding,
+                                     (float)windowHeight - numberInput.getSize().y - 20));
     numberInput.setFont(montserratBold);
     numberInput.setLimit(true, 3);
 
+    padding += 20 + (int)numberInput.getSize().x;
     Button addNewButton(&addNewButton_texture, 60);
-    addNewButton.setPosition(Vector2f(40 + numberInput.getSize().x, windowHeight - addNewButton.getSize().y - 20));
+    addNewButton.setPosition(Vector2f((float)padding, (float)windowHeight - addNewButton.getSize().y - 20));
+    padding += 20 + (int)addNewButton.getSize().x;
     Button deleteButton(&deleteButton_texture, 60);
-    deleteButton.setPosition(Vector2f(60 + numberInput.getSize().x + addNewButton.getSize().x, windowHeight - deleteButton.getSize().y - 20));
+    deleteButton.setPosition(Vector2f((float)padding, (float)windowHeight - deleteButton.getSize().y - 20));
+    padding += 20 + (int)deleteButton.getSize().x;
     Button searchButton(&searchButton_texture, 60);
-    searchButton.setPosition(Vector2f(80 + numberInput.getSize().x + addNewButton.getSize().x + deleteButton.getSize().x, windowHeight - searchButton.getSize().y - 20));
+    searchButton.setPosition(Vector2f((float)padding, (float)windowHeight - searchButton.getSize().y - 20));
+    padding += 20 + (int)searchButton.getSize().x;
+    DataBadge sizeBadge(&sizeBadge_texture, montserratBold, 60);
+    sizeBadge.setPosition(Vector2f((float)padding, (float)windowHeight - searchButton.getSize().y - 20));
+    padding += 20 + (int)sizeBadge.getSize().x;
+    DataBadge heightBadge(&heightBadge_texture, montserratBold, 60);
+    heightBadge.setPosition(Vector2f((float)padding, (float)windowHeight - searchButton.getSize().y - 20));
+    padding += 20 + (int)heightBadge.getSize().x;
+    DataBadge sumBadge(&sumBadge_texture, montserratBold, 60);
+    sumBadge.setPosition(Vector2f((float)padding, (float)windowHeight - searchButton.getSize().y - 20));
 
     //Начинаем жизнь окна
     while (myWindow.isOpen()) //Пока окно открыто
     {
-        sf::Event event; //Отслеживаем события
+        sf::Event event{}; //Отслеживаем события
         while (myWindow.pollEvent(event))
         {
             switch (event.type){
@@ -150,6 +167,9 @@ int main() {
                         mousePositionX = Mouse::getPosition(myWindow).x;
                         mousePositionY = Mouse::getPosition(myWindow).y;
                     }
+                    sumBadge.setData(getSumPathsToEvenNodes(*myTree));
+                    sizeBadge.setData(getSize(*myTree));
+                    heightBadge.setData(getHeight(*myTree));
                     break;
                 case sf::Event::MouseButtonReleased:
                     dragging = false;
@@ -170,10 +190,8 @@ int main() {
         }
 
         if (dragging){
-            int deltaX = Mouse::getPosition(myWindow).x - mousePositionX;
-            int deltaY = Mouse::getPosition(myWindow).y - mousePositionY;
-            xOffset += deltaX;
-            yOffset += deltaY;
+            xOffset += Mouse::getPosition(myWindow).x - mousePositionX;
+            yOffset += Mouse::getPosition(myWindow).y - mousePositionY;
 
             clearRenderQueue(&renderQueue);
             renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance, desirable);
@@ -183,7 +201,6 @@ int main() {
         }
 
         myWindow.clear();
-
         myWindow.draw(background);
         for(Drawable * toDraw : renderQueue){
             myWindow.draw(* toDraw);
@@ -192,7 +209,9 @@ int main() {
         deleteButton.drawTo(myWindow);
         searchButton.drawTo(myWindow);
         numberInput.drawTo(myWindow);
-
+        heightBadge.drawTo(myWindow);
+        sizeBadge.drawTo(myWindow);
+        sumBadge.drawTo(myWindow);
         myWindow.display();
     }
 

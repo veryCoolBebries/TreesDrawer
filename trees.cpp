@@ -19,7 +19,7 @@ Node* _rotateRight(Node* previous);
 //поиск минимального элемента в поддереве узла
 Node* _findMinElement(Node* root);
 //получение размера узла
-int _getSize(Node* previous);
+int _getSize(Node* node);
 //симметричный обход дерева
 void _symmetricOrder(Node* root);
 //удаление узла дерева
@@ -78,9 +78,9 @@ int getHeight(const Tree tree)
 
 int getSumPathsToEvenNodes(Tree tree)
 {
-	if (!&tree || tree.root == 0) return 0;
+	if (tree.root == nullptr) return 0;
 	int sum = 0;
-	_getSumPathsToEvenNodes(tree.root, sum, &tree);
+	return _getSumPathsToEvenNodes(tree.root, sum, &tree);
 }
 
 Node* _randomInsert(Node* previous, int data, Tree* tree)
@@ -105,10 +105,10 @@ int _fixSize(Node* previous)
 	return previous->size = _getSize(previous->left) + _getSize(previous->right) + 1;
 }
 
-int _getSize(Node* previous)
+int _getSize(Node* node)
 {
-	if (!previous) return 0;
-	else return previous->size;
+	if (!node) return 0; //Каво?
+	else return _getSize(node->right) + _getSize(node->left) + 1;
 }
 
 Node* _insertRoot(Node* previous, int data)
