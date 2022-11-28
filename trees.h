@@ -9,16 +9,17 @@ struct Node {
 struct Tree {
 	Node* root = 0;
 };
-Node* randomInsert(Node* previous, int data, Tree* tree = 0);
-int fixSize(Node* previous);
-int getSize(Node* previous);
-Node* insertRoot(Node* previous, int data);
-Node* rotateLeft(Node* previous);
-Node* rotateRight(Node* previous);
-void symmetricOrder(Node* root);
-Node* insert(Tree* root, int data);
-Node* findMinElement(Node* root);
-Node* deleteElement(Node* current, int data);
-Node* find(Node* root, int data);
-int getHeight(Node* root);
-int getSumPathsToEvenNodes(Tree* tree);
+//получение размера дерева
+int getSize(const Tree tree);
+//симметричный обход дерева
+void symmetricOrder(const Tree tree);
+//вставка нового узла в дерево
+Node* insert(Tree &tree, int data);
+//удаление узла дерева по значению
+void deleteElement(Tree &tree, int data);
+//поиск узла дерева по значению
+Node* find(Tree& tree, int data);
+//получение высоты дерева
+int getHeight(const Tree tree);
+//получение суммы длин путей до всех чётных вершин
+int getSumPathsToEvenNodes(Tree tree);

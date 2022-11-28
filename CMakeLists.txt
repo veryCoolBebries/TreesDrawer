@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 14)
 file(GLOB SOURCES
         *.h
         *.cpp
+        resources/*.*
         )
 
 add_executable(TreesDrawer ${SOURCE_FILES} ${SOURCES} functions.h functions.cpp)

@@ -141,3 +141,7 @@ void NumBox::inputLogic(int charTyped) {
     }
     textbox.setString(text.str() + "|");
 }
+
+void NumBox::setTexture(Texture * texture) {
+    background.setTexture(texture);
+}

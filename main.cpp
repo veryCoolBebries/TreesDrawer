@@ -27,26 +27,33 @@ int main() {
     background.setSize(Vector2f(windowWidth, windowHeight));
     background.setTexture(&backgroundTexture);
 
-    //Загружаем файлы ресурсов TODO: Вызывать испключения если файл не загрузился
+    //Загружаем файлы ресурсов
     Texture addNewButton_texture;
-    addNewButton_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/addNewNode.png");
     Texture deleteButton_texture;
-    deleteButton_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/deleteNode.png");
     Texture searchButton_texture;
-    searchButton_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/searchNode.png");
     Texture textField_texture;
-    textField_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/textField.png");
+    Texture textField_error_texture;
     Font montserratBold;
-    if(!montserratBold.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/MontserratBold.ttf")){
-        throw "FONT_NOT_LOADED";
+    if(!montserratBold.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/MontserratBold.ttf") ||
+       !textField_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/textField.png") ||
+       !textField_error_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/textField_error.png") ||
+       !searchButton_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/searchNode.png") ||
+       !deleteButton_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/deleteNode.png") ||
+       !addNewButton_texture.loadFromFile("/Users/mleykhner/Documents/TreesDrawer/resources/addNewNode.png")){
+        throw "FILE_NOT_LOADED";
     }
 
     //Создаём дерево
     Tree * myTree = new Tree;
     myTree->root = new Node(10);
     srand(std::time(NULL));
-    for(int i = 0; i < 15; i++){
-        insert(myTree, random() % 100);
+    for(int i = 0; i < 1; i++){
+        try{
+            insert(*myTree, random() % 100);
+        }catch(char const * e){
+            cout << *e << endl;
+        }
+
     }
 
     //Инициализируем необходимые переменные
@@ -57,6 +64,7 @@ int main() {
     int mousePositionY = 0;
     int xOffset = 220;
     int yOffset = 200;
+    Node * desirable = nullptr;
 
     //Создаём очередь рендеринга и элементы управления
     list <Drawable *> renderQueue;
@@ -86,30 +94,57 @@ int main() {
                     myWindow.close();
                     break;
                 case sf::Event::MouseButtonPressed:
+                    //По клику мышки проверяем над каким элементом нажали
                     if (addNewButton.isMouseOver(myWindow)) {
                         std::cout << "addNew: " << numberInput.getNum() << "\n";
-                        insert(myTree, numberInput.getNum());
-                        numberInput.clear();
-                        clearRenderQueue(&renderQueue);
-                        renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
-
-                    }
-                    else if(deleteButton.isMouseOver(myWindow)) {
-                        std::cout << "delete: " << numberInput.getNum() << "\n";
+                        numberInput.setTexture(&textField_texture);
+                        //Добавляем новый элемент
                         try{
-                            deleteElement(myTree->root, numberInput.getNum());
+                            insert(*myTree, numberInput.getNum());
                             numberInput.clear();
+                            desirable = nullptr;
                             clearRenderQueue(&renderQueue);
                             renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
-                        }catch(char * error){ //TODO: Починить отлов ошибки
-                            cout << "error" << error << endl;
-                            //TODO: Покрасить поле вводе
+
+                        }catch(char const * ex){
+                            cout << "Already exist" << endl;
+                            numberInput.setTexture(&textField_error_texture);
+                        }
+                        }
+                    else if(deleteButton.isMouseOver(myWindow)) {
+                        std::cout << "delete: " << numberInput.getNum() << "\n";
+                        numberInput.setTexture(&textField_texture);
+                        try{
+                            deleteElement(*myTree, numberInput.getNum());
+                            numberInput.clear();
+                            desirable = nullptr;
+                            clearRenderQueue(&renderQueue);
+                            renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
+                        }catch(char const * error){
+                            cout << error << endl;
+                            numberInput.setTexture(&textField_error_texture);
                         }
                     }
                     else if(numberInput.isMouseOver(myWindow)){
                         numberInput.setSelected(true);
                     }
+                    else if(searchButton.isMouseOver(myWindow)){
+                        std::cout << "search: " << numberInput.getNum() << "\n";
+                        numberInput.setTexture(&textField_texture);
+                        try{
+                            desirable = find(*myTree, numberInput.getNum());
+                            clearRenderQueue(&renderQueue);
+                            renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance, desirable);
+
+                        }
+                        catch (char const * e){
+                            cout << e << endl;
+                            numberInput.setTexture(&textField_error_texture);
+                        }
+                        numberInput.clear();
+                    }
                     else {
+
                         numberInput.setSelected(false);
                         dragging = true;
                         mousePositionX = Mouse::getPosition(myWindow).x;
@@ -141,7 +176,7 @@ int main() {
             yOffset += deltaY;
 
             clearRenderQueue(&renderQueue);
-            renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
+            renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance, desirable);
 
             mousePositionX = Mouse::getPosition(myWindow).x;
             mousePositionY = Mouse::getPosition(myWindow).y;

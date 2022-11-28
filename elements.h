@@ -38,6 +38,7 @@ public:
     Vector2f getSize();
     bool isMouseOver(sf::RenderWindow &window);
     void typedOn(sf::Event input);
+    void setTexture(Texture * texture);
 
 private:
     sf::Text textbox;

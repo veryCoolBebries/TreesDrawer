@@ -6,106 +6,156 @@ Node::Node(int data) {
 	this->data = data;
 	size = 1;
 }
+//случайная вставка в дерево
+Node* _randomInsert(Node* previous, int data, Tree* tree = 0);
+//пересчёт размера узла
+int _fixSize(Node* previous);
+//вставка узла в корень
+Node* _insertRoot(Node* previous, int data);
+//поворот влево вокруг узла
+Node* _rotateLeft(Node* previous);
+//поворот вправо вокруг узла
+Node* _rotateRight(Node* previous);
+//поиск минимального элемента в поддереве узла
+Node* _findMinElement(Node* root);
+//получение размера узла
+int _getSize(Node* previous);
+//симметричный обход дерева
+void _symmetricOrder(Node* root);
+//удаление узла дерева
+Node* _deleteElement(Node* current, int data, Tree * tree);
+//получение высоты поддерева узла
+int _getHeight(Node* root);
+//поиск элемента по значению в поддереве узла
+Node* _find(Node* root, int data);
+//получение суммы путей от узла до всех четных узлов его поддерева
+int _getSumPathsToEvenNodes(Node* node, int& sum, Tree* tree);
 
-//int main() {
-//	srand(time(NULL));
-//	Tree* tree = new Tree;
-//	tree->root = insert(tree, 0);
-//	int hui[] = { 1,2,3,4,5,6 };
-//	for (size_t i = 0; i < 6; i++)
-//	{
-//		//insert(tree, rand() % (10*(i+1)));
-//		insert(tree, hui[i]); 
-//	}
-//	std::cout << "Size: " << getSize(tree->root) << std::endl;
-//	Node* huinya = insert(tree, 10);
-//	symmetricOrder(tree->root);
-//	deleteElement(tree->root, 10);
-//	std::cout << '/' << huinya->data << '/' << std::endl;
-//	symmetricOrder(tree->root);
-//	std::cout << "Height of tree: " << getHeight(tree->root) << std::endl;
-//	std::cout << "Sum of paths to even node: " << getSumPathsToEvenNodes(tree);
-//}
+int getSize(const Tree tree)
+{
+	return _getSize(tree.root);
+}
 
-Node* randomInsert(Node* previous, int data, Tree* tree)
+void symmetricOrder(const Tree tree)
+{
+	return _symmetricOrder(tree.root);
+}
+
+Node* insert(Tree& tree, int data)
+{
+	srand(time(NULL));
+	if (tree.root == 0) return tree.root = _randomInsert(tree.root, data, &tree);
+	else {
+		try {
+			find(tree, data);
+		}
+		catch(char const * ex){
+			return _randomInsert(tree.root, data, &tree);
+		}
+		throw "Already exist!";
+	}
+}
+
+void deleteElement(Tree& tree, int data)
+{
+	if (!&tree || tree.root == 0) throw "Tree is empty!";
+	_deleteElement(tree.root, data, &tree);
+	return;
+}
+
+Node* find(Tree& tree, int data)
+{
+	if (!&tree || tree.root == 0) throw "Tree is empty";
+	Node* element = _find(tree.root, data);
+	if (!element) throw "Element not found!";
+	return element;
+}
+
+int getHeight(const Tree tree)
+{
+	return _getHeight(tree.root);
+}
+
+int getSumPathsToEvenNodes(Tree tree)
+{
+	if (!&tree || tree.root == 0) return 0;
+	int sum = 0;
+	_getSumPathsToEvenNodes(tree.root, sum, &tree);
+}
+
+Node* _randomInsert(Node* previous, int data, Tree* tree)
 {
 	
 	if (!previous) return new Node(data);
-	if /* (rand() % (previous->size + 1) == 0)*/(true) {
+	if (rand() % (previous->size + 1) == 0) {
 		if (previous == tree->root) {
-			tree->root = insertRoot(previous, data);
+			tree->root = _insertRoot(previous, data);
 			return tree->root;
 		}
-		return insertRoot(previous, data);
+		return _insertRoot(previous, data);
 	}
-	else if (data < previous->data) previous->left = randomInsert(previous->left, data, tree);
-	else if (data > previous->data) previous->right = randomInsert(previous->right, data, tree);
-	fixSize(previous);
+	else if (data < previous->data) previous->left = _randomInsert(previous->left, data, tree);
+	else if (data > previous->data) previous->right = _randomInsert(previous->right, data, tree);
+	_fixSize(previous);
 	return previous;
 }
 
-int fixSize(Node* previous)
+int _fixSize(Node* previous)
 {
-	return previous->size = getSize(previous->left) + getSize(previous->right) + 1;
+	return previous->size = _getSize(previous->left) + _getSize(previous->right) + 1;
 }
 
-int getSize(Node* previous)
+int _getSize(Node* previous)
 {
 	if (!previous) return 0;
 	else return previous->size;
 }
 
-Node* insertRoot(Node* previous, int data)
+Node* _insertRoot(Node* previous, int data)
 {
 	if (!previous) return new Node(data);
 	if (data < previous->data) {
-		previous->left = insertRoot(previous->left, data);
-		return rotateRight(previous);
+		previous->left = _insertRoot(previous->left, data);
+		return _rotateRight(previous);
 	}
 	else
 	{
-		previous->right = insertRoot(previous->right, data);
-		return rotateLeft(previous);
+		previous->right = _insertRoot(previous->right, data);
+		return _rotateLeft(previous);
 	}
 }
 
-Node* rotateLeft(Node* previous)
+Node* _rotateLeft(Node* previous)
 {
 	Node* current = previous->right;
 	if (!current) return previous;
 	previous->right = current->left;
 	current->left = previous;
 	current->size = previous->size;
-	fixSize(previous);
+	_fixSize(previous);
 	return current;
 }
 
-Node* rotateRight(Node* previous)
+Node* _rotateRight(Node* previous)
 {
 	Node* current = previous->left;
 	if (!current) return previous;
 	previous->left = current->right;
 	current->right = previous;
 	current->size = previous->size;
-	fixSize(previous);
+	_fixSize(previous);
 	return current;
 }
 
-void symmetricOrder(Node* root)
+void _symmetricOrder(Node* root)
 {
 	if (!root) return;
-	symmetricOrder(root->left);
+	_symmetricOrder(root->left);
 	std::cout << " " << root->data;
-	symmetricOrder(root->right);
+	_symmetricOrder(root->right);
 }
 
-Node* insert(Tree* tree, int data)
-{
-	srand(time(NULL));
-	return randomInsert(tree->root, data, tree);
-}
-
-Node* findMinElement(Node* root)
+Node* _findMinElement(Node* root)
 {
 	Node* current = root;
 	while (current->left) {
@@ -114,71 +164,73 @@ Node* findMinElement(Node* root)
 	return current;
 }
 
-Node* deleteElement(Node* current, int data)
+Node* _deleteElement(Node* current, int data, Tree* tree)
 {
 	if (current->data == data) {
 		if (current->left == 0 && current->right == 0) {
+			if (current == tree->root) tree->root = 0;
 			delete current;
 			return NULL;
 		}
-		if (current->left == 0) return current->right;
-		if (current->right == 0) return current->left;
-		Node* minElementInRightSubtree = findMinElement(current->right);
+        if (current->left == 0) {
+            if (current == tree->root) tree->root = current->right;
+            return current->right;
+        }
+        if (current->right == 0){
+                    if (current == tree->root) tree->root = current->left;
+                    return current->left;
+        }
+		Node* minElementInRightSubtree = _findMinElement(current->right);
 		current->data = minElementInRightSubtree->data;
-		current->right = deleteElement(current->right, minElementInRightSubtree->data);
+		current->right = _deleteElement(current->right, minElementInRightSubtree->data, tree);
 		return current;
 	}
 	if (data < current->data) {
 		if (current->left == 0) {
-            throw "ELEMENT_NOT_FOUND";
-			return current;
+			throw "Element not found!";
 		}
-		current->left = deleteElement(current->left, data);
+		current->left = _deleteElement(current->left, data, tree);
 		return current;
 	}
 	if (data > current->data) {
 		if (current->right == 0) {
-			throw "ELEMENT_NOT_FOUND";
+			throw "Element not found!";
 			return current;
 		}
-		current->right = deleteElement(current->right, data);
+		current->right = _deleteElement(current->right, data,tree);
 		return current;
 	}
 
 }
 
-Node* find(Node* root, int data)
+Node* _find(Node* root, int data)
 {
 	Node* current = root;
 	while (current) {
 		if (data == current->data) return current;
-		if (data < current->data) current = current->left;
-		if (data > current->data) current = current->right;
+		else if (data < current->data) current = current->left;
+		else current = current->right;
 	}
 	return NULL;
 }
 
-int getHeight(Node* root)
+int _getHeight(Node* root)
 {
 	if (root == 0) return 0;
 	else {
-		int right = getHeight(root->right);
-		int left = getHeight(root->left);
+		int right = _getHeight(root->right);
+		int left = _getHeight(root->left);
 		return 1 + (right > left ? right : left);
 	};
 }
+
 int _getSumPathsToEvenNodes(Node* node, int &sum, Tree* tree)
 {
 	if (!node) return sum;
-	if (node->data % 2 == 0) sum += getHeight(tree->root) - getHeight(node);
+	if (node->data % 2 == 0) sum += _getHeight(tree->root) - _getHeight(node);
 	_getSumPathsToEvenNodes(node->left, sum, tree);
 	_getSumPathsToEvenNodes(node->right, sum, tree);
 	return sum;
 }
-int getSumPathsToEvenNodes(Tree* tree)
-{
-	if (!tree) return 0;
-	int sum = 0;
-	_getSumPathsToEvenNodes(tree->root, sum, tree);
-}
+
 

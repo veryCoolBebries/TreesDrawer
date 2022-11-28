@@ -26,7 +26,7 @@ Texture createBackgroundTexture(Uint16 windowWidth, Uint16 windowHeight, Color c
     return backgroundTexture;
 }
 
-void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int x, int y, int xOffset, int yOffset, int horizontalDistribution, int verticalDistribution, int layer){
+void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int x, int y, int xOffset, int yOffset, int horizontalDistribution, int verticalDistribution, Node * toHighlight, int layer){
 
     //Рисуем ветки
     if(node->left) {
@@ -56,10 +56,12 @@ void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int x
         renderQueue->push_back(line);
     }
 
+    bool desiredNode = toHighlight == node;
+
     //Рисуем узел
     CircleShape * newCircle = new CircleShape(50);
     newCircle->setOutlineThickness(5);
-    newCircle->setOutlineColor(Color(217, 155, 102));
+    newCircle->setOutlineColor(desiredNode ? Color(255, 0, 0) : Color(217, 155, 102));
     newCircle->setOrigin(Vector2f(50, 50));
     newCircle->setPosition(x + xOffset, y + yOffset);
     renderQueue->push_back(newCircle);
@@ -76,14 +78,14 @@ void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int x
 
     //Рекурсивно вызываем функцию для левого и правого ребёнка
     if(node->left)
-        renderNodes(renderQueue, node->left, font, x - horizontalDistribution / pow(2, layer - 1), y + verticalDistribution, xOffset, yOffset, horizontalDistribution, verticalDistribution, layer + 1);
+        renderNodes(renderQueue, node->left, font, x - horizontalDistribution / pow(2, layer - 1), y + verticalDistribution, xOffset, yOffset, horizontalDistribution, verticalDistribution, toHighlight, layer + 1);
     if(node->right)
-        renderNodes(renderQueue, node->right, font, x + horizontalDistribution / pow(2, layer - 1), y + verticalDistribution, xOffset, yOffset, horizontalDistribution, verticalDistribution, layer + 1);
+        renderNodes(renderQueue, node->right, font, x + horizontalDistribution / pow(2, layer - 1), y + verticalDistribution, xOffset, yOffset, horizontalDistribution, verticalDistribution, toHighlight, layer + 1);
 
 }
 
-void renderTree(list <Drawable *> * renderQueue, Tree * tree, Font *font, int x, int y, int xOffset, int yOffset, int horizontalDistribution, int verticalDistribution, int layer){
-    renderNodes(renderQueue, tree->root, font, x, y, xOffset, yOffset, horizontalDistribution, verticalDistribution, layer);
+void renderTree(list <Drawable *> * renderQueue, Tree * tree, Font *font, int x, int y, int xOffset, int yOffset, int horizontalDistribution, int verticalDistribution, Node * toHighlight, int layer){
+    renderNodes(renderQueue, tree->root, font, x, y, xOffset, yOffset, horizontalDistribution, verticalDistribution, toHighlight, layer);
 }
 
 void clearRenderQueue(list <Drawable *> * renderQueue){
