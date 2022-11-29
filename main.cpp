@@ -12,7 +12,7 @@ int main() {
     //Настройки окна
     Uint16 windowWidth = 1440;
     Uint16 windowHeight = 960;
-    string windowTitle = "Мудрое дерево";
+    string windowTitle = "Деревья";
     sf::ContextSettings settings;
     settings.antialiasingLevel = 16;
 
@@ -121,7 +121,13 @@ int main() {
                             numberInput.clear();
                             desirable = nullptr;
                             clearRenderQueue(&renderQueue);
-                            renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
+                            renderTree(
+                                    &renderQueue,
+                                    myTree, &montserratBold,
+                                    500,200,
+                                    xOffset, yOffset,
+                                    horizontalDistance,
+                                    verticalDistance);
 
                         }catch(char const * ex){
                             cout << "Already exist" << endl;
@@ -136,7 +142,13 @@ int main() {
                             numberInput.clear();
                             desirable = nullptr;
                             clearRenderQueue(&renderQueue);
-                            renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
+                            renderTree(&renderQueue,
+                                       myTree,
+                                       &montserratBold,
+                                       500, 200,
+                                       xOffset, yOffset,
+                                       horizontalDistance,
+                                       verticalDistance);
                         }catch(char const * error){
                             cout << error << endl;
                             numberInput.setTexture(&textField_error_texture);
@@ -151,7 +163,14 @@ int main() {
                         try{
                             desirable = find(*myTree, numberInput.getNum());
                             clearRenderQueue(&renderQueue);
-                            renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance, desirable);
+                            renderTree(
+                                    &renderQueue,
+                                    myTree, &montserratBold,
+                                    500, 200,
+                                    xOffset, yOffset,
+                                    horizontalDistance,
+                                    verticalDistance,
+                                    desirable);
 
                         }
                         catch (char const * e){
@@ -178,7 +197,14 @@ int main() {
                     horizontalDistance += event.mouseWheel.delta * -10;
                     if(horizontalDistance < 50) horizontalDistance = 50;
                     clearRenderQueue(&renderQueue);
-                    renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance);
+                    renderTree(
+                            &renderQueue,
+                            myTree,
+                            &montserratBold,
+                            500, 200,
+                            xOffset, yOffset,
+                            horizontalDistance,
+                            verticalDistance);
                     break;
                 case sf::Event::TextEntered:
                     numberInput.typedOn(event);
@@ -192,10 +218,16 @@ int main() {
         if (dragging){
             xOffset += Mouse::getPosition(myWindow).x - mousePositionX;
             yOffset += Mouse::getPosition(myWindow).y - mousePositionY;
-
             clearRenderQueue(&renderQueue);
-            renderTree(&renderQueue, myTree, &montserratBold, 500, 200, xOffset, yOffset, horizontalDistance, verticalDistance, desirable);
-
+            renderTree(&renderQueue,
+                       myTree,
+                       &montserratBold,
+                       500, 200,
+                       xOffset,
+                       yOffset,
+                       horizontalDistance,
+                       verticalDistance,
+                       desirable);
             mousePositionX = Mouse::getPosition(myWindow).x;
             mousePositionY = Mouse::getPosition(myWindow).y;
         }
@@ -214,6 +246,5 @@ int main() {
         sumBadge.drawTo(myWindow);
         myWindow.display();
     }
-
     return 0;
 }

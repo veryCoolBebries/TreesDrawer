@@ -62,8 +62,8 @@ void renderNodes(list <Drawable *> * renderQueue, Node * node, Font *font, int x
 
     //Рисуем узел
     CircleShape * newCircle = new CircleShape(50);
-    newCircle->setOutlineThickness(5);
-    newCircle->setOutlineColor(desiredNode ? Color(255, 0, 0) : Color(217, 155, 102));
+    newCircle->setOutlineThickness(desiredNode ? 10 : 5);
+    newCircle->setOutlineColor(desiredNode ? Color(177, 36, 36) : Color(217, 155, 102));
     newCircle->setOrigin(Vector2f(50, 50));
     newCircle->setPosition(x + xOffset, y + yOffset);
     renderQueue->push_back(newCircle);
